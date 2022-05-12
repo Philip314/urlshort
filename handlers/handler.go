@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
@@ -64,6 +65,36 @@ func createYamlType(yamlByte []byte) ([]yamlType, error) {
 func parseYamlTypeToMap(yamlSlice []yamlType) map[string]string {
 	mapOutput := make(map[string]string)
 	for _, v := range yamlSlice {
+		mapOutput[v.Path] = v.URL
+	}
+	return mapOutput
+}
+
+func JsonHandler(json []byte, fallback http.Handler) (http.HandlerFunc, error) {
+	jsonType, err := createJsonType(json)
+	if err != nil {
+		return nil, err
+	}
+	return MapHandler(parseJsonTypeToMap(jsonType), fallback), nil
+}
+
+type JsonType struct {
+	Path string
+	URL  string
+}
+
+func createJsonType(jsonByte []byte) ([]JsonType, error) {
+	var jsonType []JsonType
+	err := json.Unmarshal(jsonByte, &jsonType)
+	if err != nil {
+		return nil, err
+	}
+	return jsonType, nil
+}
+
+func parseJsonTypeToMap(jsonByte []JsonType) map[string]string {
+	mapOutput := make(map[string]string)
+	for _, v := range jsonByte {
 		mapOutput[v.Path] = v.URL
 	}
 	return mapOutput
