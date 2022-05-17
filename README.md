@@ -13,9 +13,10 @@ I created this from following [Gophercises](https://gophercises.com/ "Gophercise
 
 You can specify a YAML file to read from with the `-yaml` flag.
 It is expecting to be in the format of 
-<code>
+
+```
 - path: /some-path
   url: https://www.someurl.com/
-<code>
+```
 
 Flag details can be found by running `go run main.go -help`.
