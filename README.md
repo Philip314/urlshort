@@ -7,7 +7,7 @@ Shortened URL is stored in the formats of Map, YAML, and JSON.
 I created this from following [Gophercises](https://gophercises.com/ "Gophercises") to learn Go.
 
 ## Getting Started
-1. Pull repo
+1. Clone repo
 2. Go into the project folder with command line interface
 3. Run project with `go run main.go`
 4. Go to `localhost:8080` in a web browser to see the index or with a valid path to be redirected to the original URL
