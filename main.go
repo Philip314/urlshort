@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -16,22 +17,9 @@ func main() {
 
 	flag.Parse()
 
-	file, err := os.Open(*yamlFilename)
+	data, err := openYamlFile(*yamlFilename)
 	if err != nil {
-		fmt.Println("Error opening file")
-		fileRead = false
-	}
-
-	fileSize, err := getFileSize(file)
-	if err != nil {
-		fmt.Println("Error getting filesize")
-		fileRead = false
-	}
-
-	data := make([]byte, fileSize)
-	count, err := file.Read(data)
-	if err != nil || count == 0 {
-		fmt.Println("Error reading file")
+		fmt.Println(err)
 		fileRead = false
 	}
 
@@ -77,9 +65,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	_ = jsonHandler
 
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", jsonHandler)
+	http.ListenAndServe(":8080", yamlHandler)
 }
 
 func defaultMux() *http.ServeMux {
@@ -90,6 +79,25 @@ func defaultMux() *http.ServeMux {
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, world!")
+}
+
+func openYamlFile(yamlFilename string) ([]byte, error) {
+	file, err := os.Open(yamlFilename)
+	if err != nil {
+		return nil, errors.New("error opening file")
+	}
+
+	fileSize, err := getFileSize(file)
+	if err != nil {
+		return nil, errors.New("error getting filesize")
+	}
+
+	data := make([]byte, fileSize)
+	count, err := file.Read(data)
+	if err != nil || count == 0 {
+		return nil, errors.New("error reading file")
+	}
+	return data, nil
 }
 
 func getFileSize(file *os.File) (int, error) {
