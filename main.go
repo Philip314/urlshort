@@ -14,14 +14,29 @@ func main() {
 	fileRead := true
 
 	yamlFilename := flag.String("yaml", "link.yaml", "YAML file containing paths and URLs")
+	jsonFilename := flag.String("json", "link.json", "JSON file containing paths and URLs")
 	decodeType := flag.String("type", "json", "Type to decode URLS from (map, yaml, json)")
 
 	flag.Parse()
 
-	data, err := openYamlFile(*yamlFilename)
-	if err != nil {
-		fmt.Println(err)
-		fileRead = false
+	var yamlData []byte
+	if *decodeType == "yaml" {
+		var err error
+		yamlData, err = getFileData(*yamlFilename)
+		if err != nil {
+			fmt.Println(err)
+			fileRead = false
+		}
+	}
+
+	var jsonData []byte
+	if *decodeType == "json" {
+		var err error
+		jsonData, err = getFileData(*jsonFilename)
+		if err != nil {
+			fmt.Println(err)
+			fileRead = false
+		}
 	}
 
 	mux := defaultMux()
@@ -42,12 +57,12 @@ func main() {
   url: https://github.com/gophercises/urlshort/tree/solution
 `
 	// Fallback to default data if reading file fails
-	if !fileRead {
+	if !fileRead && *decodeType == "yaml" {
 		fmt.Println("Using default data")
-		data = []byte(yaml)
+		yamlData = []byte(yaml)
 	}
 
-	yamlHandler, err := handlers.YAMLHandler([]byte(data), mapHandler)
+	yamlHandler, err := handlers.YAMLHandler([]byte(yamlData), mapHandler)
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +76,14 @@ func main() {
 		"url": "https://github.com/gophercises/urlshort/tree/solution"
 	}]
 `
-	jsonHandler, err := handlers.JsonHandler([]byte(json), mapHandler)
+
+	// Fallback to default data if reading file fails
+	if !fileRead && *decodeType == "json" {
+		fmt.Println("Using default data")
+		jsonData = []byte(json)
+	}
+
+	jsonHandler, err := handlers.JsonHandler([]byte(jsonData), mapHandler)
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +120,7 @@ func goodbye() {
 	os.Exit(1)
 }
 
-func openYamlFile(yamlFilename string) ([]byte, error) {
+func getFileData(yamlFilename string) ([]byte, error) {
 	file, err := os.Open(yamlFilename)
 	if err != nil {
 		return nil, errors.New("error opening file")
