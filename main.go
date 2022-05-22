@@ -14,6 +14,7 @@ func main() {
 	fileRead := true
 
 	yamlFilename := flag.String("yaml", "link.yaml", "YAML file containing paths and URLs")
+	decodeType := flag.String("type", "json", "Type to decode URLS from (map, yaml, json)")
 
 	flag.Parse()
 
@@ -50,7 +51,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = yamlHandler
 
 	json := `
 	[{
@@ -65,10 +65,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ = jsonHandler
+
+	var handler http.HandlerFunc
+
+	switch *decodeType {
+	case "map":
+		handler = mapHandler
+	case "yaml":
+		handler = yamlHandler
+	case "json":
+		handler = jsonHandler
+	default:
+		goodbye()
+	}
 
 	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
+	http.ListenAndServe(":8080", handler)
 }
 
 func defaultMux() *http.ServeMux {
@@ -79,6 +91,11 @@ func defaultMux() *http.ServeMux {
 
 func hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, world!")
+}
+
+func goodbye() {
+	fmt.Println("Invalid decode type")
+	os.Exit(1)
 }
 
 func openYamlFile(yamlFilename string) ([]byte, error) {
